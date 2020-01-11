@@ -70,20 +70,46 @@ class Menu:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    pygame.quit()
+                    terminate()
 
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         return
+                elif pygame.MOUSEBUTTONDOWN == event.type and 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         239 > pygame.mouse.get_pos()[1] > 197:
+                    return
+                    self.curpos = pygame.mouse.get_pos()
+                elif pygame.MOUSEBUTTONDOWN == event.type and 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         293 > pygame.mouse.get_pos()[1] > 255:
+                    screen.blit(self.fonpause1, (0, 0))
+                    crosh_bot.life = 10
+                    return
+                    self.curpos = pygame.mouse.get_pos()
+                elif 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         293 > pygame.mouse.get_pos()[1] > 255:
+                    screen.blit(self.fonpause2, (0, 0))
+                    self.curpos = pygame.mouse.get_pos()
+                elif 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         293 > pygame.mouse.get_pos()[1] > 255:
+                    screen.blit(self.fonpause2, (0, 0))
+                    self.curpos = pygame.mouse.get_pos()
+                elif pygame.MOUSEBUTTONDOWN == event.type and 261 < pygame.mouse.get_pos()[0] < 480 and \
+                        361 > pygame.mouse.get_pos()[1] > 313:
+                    pygame.quit()
+                    terminate()
                 elif 261 < pygame.mouse.get_pos()[0] < 480 and \
                         361 > pygame.mouse.get_pos()[1] > 313:
                     screen.blit(self.fonpause3, (0, 0))
                     self.curpos = pygame.mouse.get_pos()
-                elif event.type == pygame.MOUSEBUTTONDOWN and 261 < pygame.mouse.get_pos()[0] < 480 and \
-                        361 > pygame.mouse.get_pos()[1] > 313:
-                    print(1)
-                    pygame.quit()
-                    terminate()
+                elif pygame.MOUSEBUTTONDOWN == event.type and 261 < pygame.mouse.get_pos()[0] < 480 and \
+                        427 > pygame.mouse.get_pos()[1] > 382:
+                    self.curpos = pygame.mouse.get_pos()
+                    start_screen()
+                elif 261 < pygame.mouse.get_pos()[0] < 480 and \
+                        427 > pygame.mouse.get_pos()[1] > 382:
+                    screen.blit(self.fonpause4, (0, 0))
+                    self.curpos = pygame.mouse.get_pos()
 
                 elif event.type == pygame.MOUSEMOTION:
                     self.curpos = event.pos
@@ -234,6 +260,7 @@ class Win:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    pygame.quit()
                     terminate()
 
                 if event.type == pygame.KEYDOWN:
@@ -259,7 +286,7 @@ class Win:
 
 
 class Crosh:
-    def __init__(self, pos=(100, 100)):
+    def __init__(self, pos=(100, 100), helf=100):
         self.image = load_image("creature1.png", -1)
         self.running = True
         self.pos = pos
@@ -278,8 +305,8 @@ class Crosh:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
-                    start_screen()
+                    pygame.quit()
+                    terminate()
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_DOWN:
@@ -485,7 +512,8 @@ def start_game_heg():
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.quit()
+                terminate()
 
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 Menu(pygame.mouse.get_pos())
