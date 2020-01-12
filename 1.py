@@ -2,13 +2,17 @@ import pygame
 import os
 import random
 import sys
-import time
+from random import choice
 
 pygame.init()
 
 FPS = 50
 WIDTH = 1000
 HEIGHT = 800
+GRAVITY = 0.5
+screen_rect = (0, 0, WIDTH, HEIGHT)
+CAR_TIMER = 1
+pygame.time.set_timer(CAR_TIMER, 1000)
 
 image = pygame.Surface([100, 100])
 size = WIDTH, HEIGHT
@@ -28,6 +32,7 @@ all_sprites1 = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 sprite_group = pygame.sprite.Group()
+carrot_group = pygame.sprite.Group()
 
 bullets = []
 
@@ -35,6 +40,12 @@ bullets = []
 def terminate():
     pygame.quit()
     sys.exit()
+
+
+def load_music(name):
+    fullname = os.path.join('data', name)
+    music = pygame.mixer.Sound(fullname)
+    return music
 
 
 def load_image(name, colorkey=None):
@@ -50,6 +61,27 @@ def load_image(name, colorkey=None):
         image = image.convert_alpha()
 
     return image
+
+
+class Particle(pygame.sprite.Sprite):
+    fire = [pygame.transform.scale(load_image("c05a5db323550c763f1f8088674bbd03.png", -1), (50, 50))]
+    for scale in (5, 10, 20):
+        fire.append(pygame.transform.scale(fire[0], (scale, scale)))
+
+    def __init__(self, pos, dx, dy):
+        super().__init__(carrot_group)
+        self.image = choice(self.fire)
+        self.rect = self.image.get_rect()
+        self.velocity = [dx, dy]
+        self.rect.x, self.rect.y = pos
+        self.gravity = GRAVITY
+
+    def update(self):
+        self.velocity[1] += self.gravity
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        if not self.rect.colliderect(screen_rect):
+            self.kill()
 
 
 class Menu:
@@ -70,24 +102,64 @@ class Menu:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    pygame.quit()
+                    terminate()
 
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         return
+
+                elif pygame.MOUSEBUTTONDOWN == event.type and 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         239 > pygame.mouse.get_pos()[1] > 197:
+                    return
+
+                elif 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         239 > pygame.mouse.get_pos()[1] > 197:
+                    screen.blit(self.fonpause1, (0, 0))
+                    self.curpos = pygame.mouse.get_pos()
+
+
+                elif pygame.MOUSEBUTTONDOWN == event.type and 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         293 > pygame.mouse.get_pos()[1] > 255:
+                    screen.blit(self.fonpause1, (0, 0))
+                    crosh_bot.life = 100
+                    self.curpos = pygame.mouse.get_pos()
+                    return
+
+                elif 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         293 > pygame.mouse.get_pos()[1] > 255:
+                    screen.blit(self.fonpause2, (0, 0))
+                    self.curpos = pygame.mouse.get_pos()
+
+                elif 254 < pygame.mouse.get_pos()[0] < 502 and \
+                         293 > pygame.mouse.get_pos()[1] > 255:
+                    screen.blit(self.fonpause2, (0, 0))
+                    self.curpos = pygame.mouse.get_pos()
+
+                elif pygame.MOUSEBUTTONDOWN == event.type and 261 < pygame.mouse.get_pos()[0] < 480 and \
+                        361 > pygame.mouse.get_pos()[1] > 313:
+                    pygame.quit()
+                    terminate()
+
                 elif 261 < pygame.mouse.get_pos()[0] < 480 and \
                         361 > pygame.mouse.get_pos()[1] > 313:
                     screen.blit(self.fonpause3, (0, 0))
                     self.curpos = pygame.mouse.get_pos()
-                elif event.type == pygame.MOUSEBUTTONDOWN and 261 < pygame.mouse.get_pos()[0] < 480 and \
-                        361 > pygame.mouse.get_pos()[1] > 313:
-                    print(1)
-                    pygame.quit()
-                    terminate()
+
+                elif pygame.MOUSEBUTTONDOWN == event.type and 261 < pygame.mouse.get_pos()[0] < 480 and \
+                        427 > pygame.mouse.get_pos()[1] > 382:
+                    self.curpos = pygame.mouse.get_pos()
+                    start_screen()
+
+                elif 261 < pygame.mouse.get_pos()[0] < 480 and \
+                        427 > pygame.mouse.get_pos()[1] > 382:
+                    screen.blit(self.fonpause4, (0, 0))
+                    self.curpos = pygame.mouse.get_pos()
 
                 elif event.type == pygame.MOUSEMOTION:
                     self.curpos = event.pos
                     screen.blit(self.fonpause, (0, 0))
+
                 else:
                     screen.blit(self.fonpause, (0, 0))
 
@@ -114,7 +186,7 @@ class Border(pygame.sprite.Sprite):
 
 class Bullet(pygame.sprite.Sprite):
     bullet = load_image("bullet.png", -1)
-    bullet = pygame.transform.scale(bullet, (70, 70))
+    bullet = pygame.transform.scale(bullet, (50, 50))
 
     def __init__(self, x, y):
         super().__init__(bullet_group, all_sprites)
@@ -204,6 +276,13 @@ Border(WIDTH - 5, 5, WIDTH - 5, HEIGHT - 5)
 crosh_bot = Crosh_bot(500, 100)
 
 
+def create_particles(position):
+    particle_count = 20
+    numbers = range(-5, 6)
+    for _ in range(particle_count):
+        Particle(position, choice(numbers), choice(numbers))
+
+
 class Win:
     fonwin = load_image('fonwin.jpg')
     fonwin = pygame.transform.scale(fonwin, (1000, 800))
@@ -249,7 +328,10 @@ class Win:
                     if play.rect.collidepoint(x, y):
                         start_screen()
                         break
-
+                if event.type == CAR_TIMER:
+                    create_particles((400, 0))
+            carrot_group.update()
+            carrot_group.draw(screen)
             buttons_group.draw(screen)
             screen.blit(self.cursor, self.curpos)
             pygame.display.flip()
@@ -377,54 +459,63 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         global camera, tile_width, tile_height, player, tile_images, player_image, level_map
-        super().__init__(player_group, all_sprites1)
+        super().__init__(player_group)
         self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
         self.pos = (pos_x, pos_y)
 
     def move(self, x, y):
-        global camera, tile_width, tile_height, player, tile_images, player_image, level_map
-        camera.dx -= tile_width * (x - self.pos[0])
-        camera.dy -= tile_height * (y - self.pos[1])
+        global win
         self.pos = (x, y)
-        for sprite in tiles_group:
-            camera.apply(sprite)
+        self.rect = self.image.get_rect().move(tile_width * self.pos[0], tile_height * self.pos[1])
+        if any([self.pos == x for x in win]):
+            Win()
 
 
-class Camera:
-    def __init__(self):
-        self.dx = 0
-        self.dy = 0
+class Camera(object):
+    def __init__(self, camera_f, width, height):
+        self.camera_f = camera_f
+        self.state = pygame.Rect(0, 0, width, height)
 
     def apply(self, obj):
-        obj.rect.x = obj.abs_pos[0] + self.dx
-        obj.rect.y = obj.abs_pos[1] + self.dy
+        return obj.rect.move(self.state.topleft)
 
-    def update(self, target):
-        self.dx = 0
-        self.dy = 0
+    def update(self, obj):
+        self.state = self.camera_f(self.state, obj.rect)
+
+
+def camera_f(camera, obj_rect):
+    left_board, top_board = obj_rect[0], obj_rect[1]
+    w, h = camera[2], camera[3]
+    left_board, top_board = -left_board + WIDTH / 2, -top_board + HEIGHT / 2
+
+    left_board = min(0, left_board)
+    left_board = max(-(camera.width - WIDTH), left_board)
+    top_board = max(-(camera.height - HEIGHT), top_board)
+    top_board = min(0, top_board)
+
+    return pygame.Rect(left_board, top_board, w, h)
 
 
 def move(hero, movement):
-    global camera, tile_width, tile_height, player, tile_images, player_image, level_map
     x, y = hero.pos
     if movement == 'up':
-        if y > 0 and level_map[y - 1][x] in '.@':
+        if y > 0 and level_map[y - 1][x] in '.@$':
             hero.move(x, y - 1)
     elif movement == 'down':
-        if y < 20 and level_map[y + 1][x] in '.@':
+        if y < 44 and level_map[y + 1][x] in '.@$':
             hero.move(x, y + 1)
     elif movement == 'left':
-        if x > 0 and level_map[y][x - 1] in '.@':
+        if x > 0 and level_map[y][x - 1] in '.@$':
             hero.move(x - 1, y)
     elif movement == 'right':
-        if x < 20 and level_map[y][x + 1] in '.@':
+        if x < 44 and level_map[y][x + 1] in '.@$':
             hero.move(x + 1, y)
 
 
 def generate_level(level):
-    global camera, tile_width, tile_height, player, tile_images, player_image, level_map
-    new_player, x, y = None, None, None
+    global camera, tile_width, tile_height, player, tile_images, player_image, level_map, win
+    new_player, x, y, win = None, None, None, []
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -434,8 +525,12 @@ def generate_level(level):
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 new_player = Player(x, y)
+            elif level[y][x] == '$':
+                Tile('empty', x, y)
+                win.append((x, y))
+
     # вернем игрока, а также размер поля в клетках
-    return new_player, x, y
+    return new_player, x, y, win
 
 
 def load_level(filename):
@@ -456,10 +551,10 @@ def load_level(filename):
 
 
 def start_game_heg():
-    global camera, tile_width, tile_height, player, tile_images, player_image, level_map
+    global camera, tile_width, tile_height, player, tile_images, player_image, level_map, win
     file_name = 'map.txt'
     a = load_level(file_name)
-    camera = Camera()
+
     if a != 'Error':
 
         clock = pygame.time.Clock()
@@ -470,14 +565,18 @@ def start_game_heg():
         FPS = 50
 
         player = None
-        tile_images = {'wall': load_image('box.png'), 'empty': load_image('grass.png')}
-        player_image = load_image('mar.png')
+        tile_images = {'wall': load_image('block.png'), 'empty': load_image('grass.png')}
+        player_image = pygame.transform.scale(load_image('eg.png', pygame.Color('white')), (50, 50))
 
         tile_width = tile_height = 50
 
         hedgehog_game()
         level_map = load_level(file_name)
-        player, level_x, level_y = generate_level(a)
+        player, level_x, level_y, win = generate_level(a)
+        total_level_width = len(level_map[0]) * tile_width
+        total_level_height = len(level_map) * tile_height
+        all_sprites1.add(player)
+        camera = Camera(camera_f, total_level_width, total_level_height)
         running = True
     else:
         running = False
@@ -502,8 +601,9 @@ def start_game_heg():
                     move(player, 'right')
 
         screen.fill((0, 0, 0))
-        all_sprites1.draw(screen)
-        player_group.draw(screen)
+        camera.update(player)
+        for e in all_sprites1:
+            screen.blit(e.image, camera.apply(e))
         clock.tick(FPS)
         pygame.display.flip()
 
@@ -544,13 +644,17 @@ def crosh_game():
 def start_screen():
     curpos = [0, 0]
     cursor = load_image("arrow.png", pygame.Color('white'))
-
     cursor = pygame.transform.scale(cursor, (50, 50))
-    fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
-    foneg = pygame.transform.scale(load_image('foneg.jpg'), (WIDTH, HEIGHT))
-    fonlosash = pygame.transform.scale(load_image('fonlosash.jpg'), (WIDTH, HEIGHT))
-    foncrosh = pygame.transform.scale(load_image('foncrosh.jpg'), (WIDTH, HEIGHT))
+    fon = load_image('fon.jpg')
+    fon = pygame.transform.scale(fon, (WIDTH, HEIGHT))
+    foneg = load_image('foneg.jpg')
+    foneg = pygame.transform.scale(foneg, (WIDTH, HEIGHT))
+    fonlosash = load_image('fonlosash.jpg')
+    fonlosash = pygame.transform.scale(fonlosash, (WIDTH, HEIGHT))
+    foncrosh = load_image('foncrosh.jpg')
+    foncrosh = pygame.transform.scale(foncrosh, (WIDTH, HEIGHT))
     running = True
+
     while running:
         clock.tick(FPS)
         for event in pygame.event.get():
@@ -585,8 +689,8 @@ def start_screen():
 
             elif event.type == pygame.MOUSEMOTION:
                 curpos = event.pos
-
                 screen.blit(fon, (0, 0))
+
             else:
                 screen.blit(fon, (0, 0))
 
