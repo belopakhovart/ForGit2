@@ -53,6 +53,7 @@ def load_image(name, colorkey=None):
     image = pygame.image.load(fullname)
 
     if colorkey is not None:
+
         if colorkey == -1:
             colorkey = image.get_at((0, 0))
             pygame.display.flip()
@@ -640,6 +641,36 @@ def crosh_game():
 
         pygame.display.flip()
 
+def losash_game():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                terminate()
+
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                start_screen()
+                running = False
+
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+                Crosh()
+
+        screen.fill((100, 50, 252))
+        font = pygame.font.Font(None, 100)
+        text = font.render('Продолжение следует....', 1, pygame.Color('red'))
+        intro_text = [""]
+
+        x, y = 20, 350
+
+        for line in intro_text:
+            string_rendered = font.render(line, 1, pygame.Color('red'))
+            y += 50
+            screen.blit(string_rendered, (x, y))
+
+        screen.blit(text, (100, 270))
+
+        pygame.display.flip()
 
 def start_screen():
     curpos = [0, 0]
@@ -654,6 +685,7 @@ def start_screen():
     foncrosh = load_image('foncrosh.jpg')
     foncrosh = pygame.transform.scale(foncrosh, (WIDTH, HEIGHT))
     running = True
+    start_m.play()
 
     while running:
         clock.tick(FPS)
@@ -669,6 +701,12 @@ def start_screen():
             elif 388 < pygame.mouse.get_pos()[0] < 577 and \
                     711 > pygame.mouse.get_pos()[1] > 431:
                 screen.blit(foncrosh, (0, 0))
+                curpos = pygame.mouse.get_pos()
+
+            elif pygame.MOUSEBUTTONDOWN == event.type and 183 < pygame.mouse.get_pos()[0] < 348 and \
+                    672 > pygame.mouse.get_pos()[1] > 386:
+                losash_game()
+                screen.blit(fonlosash, (0, 0))
                 curpos = pygame.mouse.get_pos()
 
             elif 183 < pygame.mouse.get_pos()[0] < 348 and \
@@ -696,5 +734,5 @@ def start_screen():
 
         screen.blit(cursor, curpos)
         pygame.display.flip()
-
+start_m = load_music('смешарики___вступите.wav')
 start_screen()
